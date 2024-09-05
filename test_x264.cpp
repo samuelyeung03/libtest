@@ -13,7 +13,7 @@
 #define PRESET "superfast"
 #define VBV 30   // When VBV is 1, the actual frame size should not exceed the target
 
-#define CHANGE 0 // Change bitrate in half way
+#define CHANGE 1 // Change bitrate in half way
 
 using namespace std;
 int main() {
@@ -100,11 +100,13 @@ int main() {
     
     for (int i = 0; i < 2000; i++) {
 
+
+
 #if CHANGE 
         if (i == 300){
-
+            br = 1500;
             cout << "Reconfig" << endl;
-            param_.rc.i_bitrate = br / 2;
+            param_.rc.i_bitrate = br;
             param_.rc.i_vbv_max_bitrate = br; //  3000
             param_.rc.i_vbv_buffer_size = br / 30 * VBV; // kbit / 8 * 1000 = byte  // 100
 
