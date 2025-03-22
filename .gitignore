@@ -39,3 +39,15 @@ temp.yuv
 coded.h264
 input.yuv
 Makefile
+param_0_duration.json
+param_0_size.json
+param_0_ssim.json
+param_1_duration.json
+param_1_size.json
+param_1_ssim.json
+param_2_duration.json
+param_2_size.json
+param_2_ssim.json
+param_3_duration.json
+param_3_size.json
+param_3_ssim.json
