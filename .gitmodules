@@ -1,0 +1,3 @@
+[submodule "include/x264"]
+	path = include/x264
+	url = https://github.com/samuelyeung03/x264.git

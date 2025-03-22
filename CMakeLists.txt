@@ -5,10 +5,10 @@ project(test_libx264)
 add_executable(test_libx264 test_x264.cpp)
 
 # Set the path to libx264.a
-set(LIBX264_LIBRARY "/home/xiangjie/x264forme/x264/libx264.a")
+set(LIBX264_LIBRARY "~/libtest/include/x264/libx264.a")
 
 # Set the path to x264.h
-set(LIBX264_INCLUDE_DIR "/home/xiangjie/test_encoder/libtest/include")
+set(LIBX264_INCLUDE_DIR "~/libtest/include")
 
 # Add the include directory
 target_include_directories(test_libx264 PUBLIC ${LIBX264_INCLUDE_DIR})
