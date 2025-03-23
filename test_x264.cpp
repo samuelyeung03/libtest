@@ -58,23 +58,142 @@ int main() {
   int numebers_of_params = 4;
   x264_param_t params_[] = {param_, param_, param_, param_, param_,
                             param_, param_, param_, param_, param_};
-  //   params_[0].analyse.inter = X264_ANALYSE_I4x4 | X264_ANALYSE_I8x8;
-  //   params_[1].analyse.inter =
+
+  //   params_[0].i_frame_reference = 1;
+  //   params_[1].i_frame_reference = 2;
+  //   params_[2].i_frame_reference = 3;
+  //   params_[3].i_frame_reference = 4;
+
+  //   params_[0].i_scenecut_threshold = 0;
+  //   params_[1].i_scenecut_threshold = 40;
+  //   params_[2].i_scenecut_threshold = 100;
+
+  //   params_[0].b_deblocking_filter = 1;
+  //   params_[1].b_deblocking_filter = 0;
+
+  //   params_[0].i_deblocking_filter_alphac0 = 0;
+  //   params_[0].i_deblocking_filter_beta = 0;
+  //   params_[1].i_deblocking_filter_alphac0 = -3;
+  //   params_[1].i_deblocking_filter_beta = -3;
+  //   params_[2].i_deblocking_filter_alphac0 = 3;
+  //   params_[2].i_deblocking_filter_beta = 3;
+  //   params_[3].i_deblocking_filter_alphac0 = 6;
+  //   params_[3].i_deblocking_filter_beta = 6;
+
+  //   params_[0].i_frame_packing = 0;  // No frame packing
+  //   params_[1].i_frame_packing = 3;  // Side-by-side
+  //   params_[2].i_frame_packing = 4;  // Top-bottom
+  //   params_[3].i_frame_packing = 5;  // Frame alternation
+
+  //   params_[0].mastering_display = {0.3000, 0.6000, 0.1500, 0.0600, 0.6400,
+  //                                   0.3300, 0.3127, 0.3290, 1000,   0.01};
+  //   params_[1].mastering_display = {0.3127, 0.3290, 0.1500, 0.0600, 0.6400,
+  //                                   0.3300, 0.3000, 0.6000, 500,    0.05};
+
+  //   params_[0].content_light_level = {1000, 400};
+  //   params_[1].content_light_level = {800, 300};
+  //   params_[2].content_light_level = {1200, 500};
+
+  //   params_[0].i_alternative_transfer = 0;  // Default
+  //   params_[1].i_alternative_transfer = 1;  // BT.709
+  //   params_[2].i_alternative_transfer = 2;  // BT.2020
+  //   params_[3].i_alternative_transfer = 3;  // SMPTE 2084 (PQ)
+
+  params_[0].analyse.inter = X264_ANALYSE_I4x4 | X264_ANALYSE_I8x8;
+  params_[1].analyse.inter =
+      X264_ANALYSE_I4x4 | X264_ANALYSE_I8x8 | X264_ANALYSE_PSUB16x16;
+  params_[2].analyse.inter = X264_ANALYSE_I4x4 | X264_ANALYSE_I8x8 |
+                             X264_ANALYSE_PSUB16x16 | X264_ANALYSE_BSUB16x16;
+  params_[3].analyse.inter = X264_ANALYSE_I4x4 | X264_ANALYSE_I8x8 |
+                             X264_ANALYSE_PSUB16x16 | X264_ANALYSE_BSUB16x16 |
+                             X264_ANALYSE_PSUB8x8 | X264_ANALYSE_PSUB8x8;
+
+  //   params_[0].analyse.intra = X264_ANALYSE_I4x4 | X264_ANALYSE_I8x8;
+  //   params_[1].analyse.intra =
   //       X264_ANALYSE_I4x4 | X264_ANALYSE_I8x8 | X264_ANALYSE_PSUB16x16;
-  //   params_[2].analyse.inter = X264_ANALYSE_I4x4 | X264_ANALYSE_I8x8 |
-  //                              X264_ANALYSE_PSUB16x16 |
-  //                              X264_ANALYSE_BSUB16x16;
-  //   params_[3].analyse.inter = X264_ANALYSE_I4x4 | X264_ANALYSE_I8x8 |
-  //                              X264_ANALYSE_PSUB16x16 |
-  //                              X264_ANALYSE_BSUB16x16 | X264_ANALYSE_PSUB8x8
-  //                              | X264_ANALYSE_PSUB8x8;
 
-  params_[0].i_frame_reference = 1;
-  params_[1].i_frame_reference = 2;
-  params_[2].i_frame_reference = 3;
-  params_[3].i_frame_reference = 4;
+  //   params_[0].analyse.i_direct_mv_pred = X264_DIRECT_PRED_SPATIAL;  //
+  //   Default params_[1].analyse.i_direct_mv_pred =
+  //   X264_DIRECT_PRED_TEMPORAL; params_[2].analyse.i_direct_mv_pred =
+  //   X264_DIRECT_PRED_AUTO;
 
-    for (int param = 0; param < numebers_of_params; param++) {
+  //   params_[0].analyse.i_me_range = 16;
+  //   params_[1].analyse.i_me_range = 24;
+  //   params_[2].analyse.i_me_range = 8;
+  //   params_[3].analyse.i_me_range = ;
+
+  //   params_[0].analyse.i_noise_reduction = 16;
+  //   params_[1].analyse.i_noise_reduction = 24;
+  //   params_[2].analyse.i_noise_reduction = ;
+  //   params_[3].analyse.i_noise_reduction = ;
+
+  //   params_[0].analyse.i_subpel_refine = 5;
+  //   params_[1].analyse.i_subpel_refine = 7;
+  //   params_[2].analyse.i_subpel_refine = 3;
+
+  //   params_[0].analyse.i_trellis = 0;
+  //   params_[1].analyse.i_trellis = 1;
+  //   params_[2].analyse.i_trellis = 2;
+
+  //   params_[0].analyse.b_chroma_me = 1;
+  //   params_[1].analyse.b_chroma_me = 0;
+
+  //   params_[0].analyse.b_dct_decimate = 1;
+  //   params_[1].analyse.b_dct_decimate = 0;
+
+  //   params_[0].analyse.b_fast_pskip = 1;
+  //   params_[1].analyse.b_fast_pskip = 0;
+
+  //   params_[0].analyse.b_mixed_references = 1;
+  //   params_[1].analyse.b_mixed_references = 0;
+
+  //   params_[0].analyse.f_psy_rd = 1.0;
+  //   params_[1].analyse.f_psy_rd = 0.5;
+  //   params_[2].analyse.f_psy_rd = 2.0;
+
+  //   params_[0].analyse.f_psy_trellis = 0.0;
+  //   params_[1].analyse.f_psy_trellis = 0.5;
+  //   params_[2].analyse.f_psy_trellis = 1.0;
+
+  //   params_[0].crop_rect = {0, 0, 0, 0};      // No cropping
+  //   params_[1].crop_rect = {10, 10, 10, 10};  // Crop 10 pixels from
+  //   all sides params_[2].crop_rect = {50, 0, 50, 0};  // Crop 50 pixels
+  //   from left and right params_[3].crop_rect = {0, 20, 0, 20};  // Crop
+  //   20 pixels from top and bottom
+
+  //   params_[0].i_bframe_pyramid = 0;  // Disabled
+  //   params_[1].i_bframe_pyramid = 1;  // Enabled
+
+  //   params_[0].i_slice_max_size = 0;     // No limit
+  //   params_[1].i_slice_max_size = 1500;  // Limit slice size to 1500
+  //   bytes params_[2].i_slice_max_size = 2000;  // Limit slice size to
+  //   2000 bytes params_[3].i_slice_max_size = 1000;  // Limit slice size
+  //   to 1000 bytes
+
+  //   params_[0].i_slice_max_mbs = 0;     // No limit
+  //   params_[1].i_slice_max_mbs = 1200;  // Limit to 1200 macroblocks
+  //   params_[2].i_slice_max_mbs = 800;   // Limit to 800 macroblocks
+  //   params_[3].i_slice_max_mbs = 1600;  // Limit to 1600 macroblocks
+
+  //   params_[0].i_slice_min_mbs = 0;    // No limit
+  //   params_[1].i_slice_min_mbs = 100;  // Minimum of 100 macroblocks
+  //   params_[2].i_slice_min_mbs = 200;  // Minimum of 200 macroblocks
+  //   params_[3].i_slice_min_mbs = 50;   // Minimum of 50 macroblocks
+
+  //   params_[0].i_slice_count = 0;  // No slicing
+  //   params_[1].i_slice_count = 4;  // 4 slices per frame
+  //   params_[2].i_slice_count = 8;  // 8 slices per frame
+  //   params_[3].i_slice_count = 2;  // 2 slices per frame
+
+  //   params_[0].i_slice_count_max = 0;   // No limit
+  //   params_[1].i_slice_count_max = 16;  // Maximum of 16 slices
+  //   params_[2].i_slice_count_max = 8;   // Maximum of 8 slices
+  //   params_[3].i_slice_count_max = 4;   // Maximum of 4 slices
+
+  //   params_[0].b_tff = 0;
+  //   params_[1].b_tff = 1;
+
+  for (int param = 0; param < numebers_of_params; param++) {
     encoder_ = x264_encoder_open(&params_[param]);
 
     FILE* file = fopen("input.yuv", "rb");

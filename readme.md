@@ -1,14 +1,13 @@
-git submodule update --init --recursive 
+git submodule update --init --recursive
 cd include/x264
-git checkout DACE
-./configure --enable-shared --enable-static 
+./configure --enable-shared --enable-static
 make
 cd ../../
 
-modifly path in CmakeList.txt
-
-cmake ./CmakeList.txt
-make
-
+modify path in CmakeList.txt
 put input.yuv in /libtest
+
+cmake ./CmakeLists.txt
+make
 ./test_libx264
+python3 compare.py
