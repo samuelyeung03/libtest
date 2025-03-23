@@ -19,11 +19,21 @@ def plot_comparison(data1, data2, label1, label2, title):
     plt.legend()
     plt.grid(True)
     plt.show()
+# Plot psnr comparison
+    plt.figure(figsize=(12, 8))
+    plt.plot(data1['psnr'], label=f'{label1}_psnr', alpha=0.7, color='blue')
+    plt.plot(data2['psnr'], label=f'{label2}_psnr', alpha=0.7, color='orange')
+    plt.xlabel('Frame')
+    plt.ylabel('PSNR')
+    plt.title(f"{title} - PSNR")
+    plt.legend()
+    plt.grid(True)
+    plt.show()
 
     # Plot Duration comparison
     plt.figure(figsize=(12, 8))
     plt.plot(data1['duration'], label=f'{label1}_duration', alpha=0.7, color='red')
-    plt.plot(data2['duration'], label=f'{label2}_duration', alpha=0.7, color='brown')
+    plt.plot(data2['duration'], label=f'{label2}_duration', alpha=0.7, color='blue')
     plt.xlabel('Frame')
     plt.ylabel('Duration')
     plt.title(f"{title} - Duration")
@@ -65,27 +75,37 @@ else:
             data1 = {
                 'size': load_json(f'{prefix1}size.json'),
                 'ssim': load_json(f'{prefix1}ssim.json'),
+                'psnr': load_json(f'{prefix1}psnr.json'),
                 'duration': load_json(f'{prefix1}duration.json')
             }
             data2 = {
                 'size': load_json(f'{prefix2}size.json'),
                 'ssim': load_json(f'{prefix2}ssim.json'),
+                'psnr': load_json(f'{prefix2}psnr.json'),
                 'duration': load_json(f'{prefix2}duration.json')
             }
 
             # Calculate and print averages
             avg_ssim1 = calculate_average(data1['ssim'])
             avg_ssim2 = calculate_average(data2['ssim'])
+            avg_psnr1 = calculate_average(data1['psnr'])
+            avg_psnr2 = calculate_average(data2['psnr'])
             print(f"Average SSIM for {prefix1}: {avg_ssim1}")
             print(f"Average SSIM for {prefix2}: {avg_ssim2}")
+            print(f"Average PSNR for {prefix1}: {avg_psnr1}")
+            print(f"Average PSNR for {prefix2}: {avg_psnr2}")
 
             # Calculate and print the difference
             ssim_difference = (avg_ssim1 - avg_ssim2) / 100
+            psnr_difference = avg_psnr1 - avg_psnr2
             print(f"Difference in average SSIM: {ssim_difference}%")
+            print(f"Difference in average PSNR: {psnr_difference} dB")
 
             # Calculate and print the maximum difference
-            max_difference = max(abs(a - b) for a, b in zip(data1['ssim'], data2['ssim']))
-            print(f"Maximum difference in SSIM values: {max_difference}")
+            max_ssim_difference = max(abs(a - b) for a, b in zip(data1['ssim'], data2['ssim']))
+            max_psnr_difference = max(abs(a - b) for a, b in zip(data1['psnr'], data2['psnr']))
+            print(f"Maximum difference in SSIM values: {max_ssim_difference}")
+            print(f"Maximum difference in PSNR values: {max_psnr_difference}")
 
             # Plot the comparison
             plot_comparison(data1, data2, prefix1, prefix2, f"Comparison of {prefix1} and {prefix2}")
