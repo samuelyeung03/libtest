@@ -12,10 +12,13 @@ def read_data(file_path):
 complexity = read_data(complexity_file)
 duration = read_data(duration_file)
 
+y = 1000000 / 45
+
 # Plotting the graph
 plt.figure(figsize=(10, 6))
 plt.plot(complexity, label="Complexity", color="blue")
 plt.plot(duration, label="Duration", color="orange")
+plt.axhline(y, label="Y = 100000/45", color="green", linestyle="--")
 plt.xlabel("Index")
 plt.ylabel("Value")
 plt.title("Complexity vs Duration")
