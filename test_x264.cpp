@@ -97,7 +97,7 @@ int main(int argc, char *argv[])
   param_.i_fps_den = 1;
   param_.i_fps_num = fps;
   param_.analyse.b_ssim = ssim;
-  param_.analyse.b_psnr = 0;
+  param_.analyse.b_psnr = psnr;
   param_.analyse.i_me_method = X264_ME_ESA;
 
 
@@ -166,60 +166,104 @@ int main(int argc, char *argv[])
   }
 
   cout << "Starting encoding loop..." << endl;
-  for (int i = 0; i < number_of_frames; i++)
+  for (int loop = 0; loop < runloops; loop++)
   {
-    cout << "Reading frame " << i << endl;
-    fread(yuv, 1, frame_size, file);
+    cout << "Run loop " << loop + 1 << " of " << runloops << endl;
 
-    cout << "frame number:" << frame_num << "\r";
+    // Reset frame-related vectors for each loop
+    vector<int> temp_frame_size_vec;
+    vector<int> temp_duration_vec;
+    vector<double> temp_ssim_vec;
+    vector<double> temp_psnr_vec;
+    vector<int> temp_dace_complexity_vec;
 
-    pic_.img.plane[0] = yuv;
-    pic_.img.plane[1] = yuv + param_.i_width * param_.i_height;
-    pic_.img.plane[2] = yuv + param_.i_width * param_.i_height * 5 / 4;
+    frame_num = 0;
+    rewind(file); // Reset file pointer to the beginning
 
-    pic_.i_pts = frame_num;
-    frame_num++;
-    int i_nal;
-
-    cout << "Encoding frame " << frame_num << endl;
-
-    // time analysis
-    auto start = chrono::high_resolution_clock::now();
-    int i_frame_size =
-        x264_encoder_encode(encoder_, &nal_t_, &i_nal, &pic_, &pic_out_);
-    auto end = chrono::high_resolution_clock::now();
-
-    if (i_frame_size < 0)
+    for (int i = 0; i < number_of_frames; i++)
     {
-      cerr << "Error encoding frame " << frame_num << endl;
-      break;
-    }
+      cout << "Reading frame " << i << endl;
+      fread(yuv, 1, frame_size, file);
 
-    cout << "Frame size: " << i_frame_size << ", Duration: " << chrono::duration_cast<chrono::microseconds>(end - start).count() << " microseconds" << endl;
+      cout << "frame number:" << frame_num << "\r";
 
-    // record ssim
-    double ssim = pic_out_.prop.f_ssim;
-    ssim_vec.push_back(ssim);
+      pic_.img.plane[0] = yuv;
+      pic_.img.plane[1] = yuv + param_.i_width * param_.i_height;
+      pic_.img.plane[2] = yuv + param_.i_width * param_.i_height * 5 / 4;
 
-    // record psnr
-    double psnr = pic_out_.prop.f_psnr_avg;
-    psnr_vec.push_back(psnr);
+      pic_.i_pts = frame_num;
+      frame_num++;
+      int i_nal;
 
-    dace_complexity_vec.push_back(pic_out_.prop.DACE_complexity);
-    dace_duration_vec.push_back(pic_out_.prop.DACE_encoding_time);
+      cout << "Encoding frame " << frame_num << endl;
 
-    int duration = chrono::duration_cast<chrono::microseconds>(end - start).count();
+      // time analysis
+      auto start = chrono::high_resolution_clock::now();
+      int i_frame_size =
+          x264_encoder_encode(encoder_, &nal_t_, &i_nal, &pic_, &pic_out_);
+      auto end = chrono::high_resolution_clock::now();
 
-    frame_size_vec.push_back(i_frame_size);
-    cout << "real frame size:" << i_frame_size << endl;
-    duration_vec.push_back(duration);
-    if (i_frame_size > 0)
-    {
-      for (int i = 0; i < i_nal; i++)
+      if (i_frame_size < 0)
       {
-        fwrite(nal_t_[i].p_payload, 1, nal_t_[i].i_payload, file_out);
+        cerr << "Error encoding frame " << frame_num << endl;
+        break;
+      }
+
+      cout << "Frame size: " << i_frame_size << ", Duration: " << chrono::duration_cast<chrono::microseconds>(end - start).count() << " microseconds" << endl;
+
+      // record ssim
+      double ssim = pic_out_.prop.f_ssim;
+      temp_ssim_vec.push_back(ssim);
+
+      // record psnr
+      double psnr = pic_out_.prop.f_psnr_avg;
+      temp_psnr_vec.push_back(psnr);
+
+      // record DACE complexity
+      int dace_complexity = pic_out_.prop.DACE_complexity;
+      temp_dace_complexity_vec.push_back(dace_complexity);
+
+      int duration = chrono::duration_cast<chrono::microseconds>(end - start).count();
+
+      temp_frame_size_vec.push_back(i_frame_size);
+      temp_duration_vec.push_back(duration);
+
+      if (i_frame_size > 0)
+      {
+        for (int i = 0; i < i_nal; i++)
+        {
+          fwrite(nal_t_[i].p_payload, 1, nal_t_[i].i_payload, file_out);
+        }
       }
     }
+
+    // Accumulate results for averaging
+    for (size_t i = 0; i < temp_frame_size_vec.size(); i++)
+    {
+      if (frame_size_vec.size() <= i)
+      {
+        frame_size_vec.push_back(0);
+        duration_vec.push_back(0);
+        if (ssim) ssim_vec.push_back(0.0);
+        if (psnr) psnr_vec.push_back(0.0);
+        dace_complexity_vec.push_back(0);
+      }
+      frame_size_vec[i] += temp_frame_size_vec[i];
+      duration_vec[i] += temp_duration_vec[i];
+      if (ssim) ssim_vec[i] += temp_ssim_vec[i];
+      if (psnr) psnr_vec[i] += temp_psnr_vec[i];
+      dace_complexity_vec[i] += temp_dace_complexity_vec[i];
+    }
+  }
+
+  // Calculate averages
+  for (size_t i = 0; i < frame_size_vec.size(); i++)
+  {
+    frame_size_vec[i] /= runloops;
+    duration_vec[i] /= runloops;
+    if (ssim) ssim_vec[i] /= runloops;
+    if (psnr) psnr_vec[i] /= runloops;
+    dace_complexity_vec[i] /= runloops;
   }
 
   // Open the JSON file for writing
