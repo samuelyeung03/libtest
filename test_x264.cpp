@@ -10,9 +10,8 @@
 // Time Analysis
 #include <chrono>
 #include <vector>
-#include <filesystem> 
+#include <filesystem>
 #include <regex>
-
 
 #define QP 21 // Used when CQP
 #define PRESET "superfast"
@@ -33,6 +32,7 @@ int main(int argc, char *argv[])
   int runloops = 1;  // Default number of loops is 1
   int fixed_complexity = -1;
   int dace = 1;
+  int number_of_frames = 900;
   string input_filename = "input.yuv";
 
   cout << "Parsing command-line arguments..." << endl;
@@ -40,6 +40,10 @@ int main(int argc, char *argv[])
   for (int i = 1; i < argc; i++)
   {
     cout << "Processing argument: " << argv[i] << endl;
+    if (std::string(argv[i]) == "--length" && i + 1 < argc)
+    {
+      number_of_frames = std::atoi(argv[++i]);
+    }
     if (std::string(argv[i]) == "--width" && i + 1 < argc)
     {
       width = std::atoi(argv[++i]);
@@ -103,7 +107,6 @@ int main(int argc, char *argv[])
   param_.analyse.b_psnr = psnr;
   param_.analyse.i_me_method = X264_ME_ESA;
 
-
   param_.rc.i_rc_method = X264_RC_ABR;
 
   param_.dace = dace;
@@ -111,29 +114,29 @@ int main(int argc, char *argv[])
 
   int bitrate_kbps = 3000;
 
-   //param_.i_threads = 1;
-   param_.i_frame_total = 0;  
-   param_.i_keyint_max = 1500;
-   param_.rc.i_rc_method = X264_RC_ABR;
-   param_.rc.i_vbv_max_bitrate = bitrate_kbps;
-   param_.rc.i_vbv_buffer_size = bitrate_kbps / 2;
-   // param_.i_bframe = 0;
-   // param_.b_open_gop = 0;
-   // param_.i_bframe_pyramid = 0;
-   // param_.i_bframe_adaptive = X264_B_ADAPT_TRELLIS;
- 
-   param_.i_log_level = X264_LOG_DEBUG;
-   param_.i_fps_den = 1;
-   param_.i_fps_num = 30;
- 
-   param_.b_annexb = 1;  // for start code 0,0,0,1
-   param_.i_csp = X264_CSP_I420;
- 
-   param_.b_vfr_input = 0;
-   param_.b_repeat_headers = 1;  // sps, pps
-   param_.rc.i_bitrate = bitrate_kbps;
-   /* Apply profile restrictions. */
-    x264_param_apply_profile(&param_, "baseline");
+  // param_.i_threads = 1;
+  param_.i_frame_total = 0;
+  param_.i_keyint_max = 1500;
+  param_.rc.i_rc_method = X264_RC_ABR;
+  param_.rc.i_vbv_max_bitrate = bitrate_kbps;
+  param_.rc.i_vbv_buffer_size = bitrate_kbps / 2;
+  // param_.i_bframe = 0;
+  // param_.b_open_gop = 0;
+  // param_.i_bframe_pyramid = 0;
+  // param_.i_bframe_adaptive = X264_B_ADAPT_TRELLIS;
+
+  param_.i_log_level = X264_LOG_DEBUG;
+  param_.i_fps_den = 1;
+  param_.i_fps_num = 30;
+
+  param_.b_annexb = 1; // for start code 0,0,0,1
+  param_.i_csp = X264_CSP_I420;
+
+  param_.b_vfr_input = 0;
+  param_.b_repeat_headers = 1; // sps, pps
+  param_.rc.i_bitrate = bitrate_kbps;
+  /* Apply profile restrictions. */
+  x264_param_apply_profile(&param_, "baseline");
 
   cout << "Width: " << width << ", Height: " << height << ", FPS: " << fps << ", Bitrate: " << br << endl;
 
@@ -174,9 +177,22 @@ int main(int argc, char *argv[])
   int count_diff;
   double average_diff;
 
-  int number_of_frames = 900;
-
   encoder_ = x264_encoder_open(&param_);
+
+  system("mkdir -p result");
+  std::string input_basename = std::filesystem::path(input_filename).stem().string();
+  std::string output_dir = "result/" + input_basename;
+  if (runloops > 1)
+  {
+    output_dir += "_" + std::to_string(runloops) + "loops";
+  }
+
+  std::filesystem::create_directories(output_dir);
+
+  // Open the JSON file for writing
+  std::string output_filename = output_dir + "/";
+
+  output_filename += "DACE" + std::to_string(dace);
 
   cout << "Opening input file: " << input_filename << endl;
   FILE *file = fopen(input_filename.c_str(), "rb");
@@ -186,7 +202,8 @@ int main(int argc, char *argv[])
     return -1;
   }
 
-  FILE *file_out = fopen("coded.h264", "wb");
+  std::cout << "Output file path: " << (output_filename + "coded.h264") << std::endl;
+  FILE *file_out = fopen((output_filename + "coded.h264").c_str(), "wb");
   if (!file_out)
   {
     cerr << "Error opening output file!" << endl;
@@ -194,6 +211,8 @@ int main(int argc, char *argv[])
     return -1;
   }
 
+  output_filename += ".json";
+  
   cout << "Starting encoding loop..." << endl;
   for (int loop = 0; loop < runloops; loop++)
   {
@@ -273,14 +292,18 @@ int main(int argc, char *argv[])
       {
         frame_size_vec.push_back(0);
         duration_vec.push_back(0);
-        if (ssim) ssim_vec.push_back(0.0);
-        if (psnr) psnr_vec.push_back(0.0);
+        if (ssim)
+          ssim_vec.push_back(0.0);
+        if (psnr)
+          psnr_vec.push_back(0.0);
         dace_complexity_vec.push_back(0);
       }
       frame_size_vec[i] += temp_frame_size_vec[i];
       duration_vec[i] += temp_duration_vec[i];
-      if (ssim) ssim_vec[i] += temp_ssim_vec[i];
-      if (psnr) psnr_vec[i] += temp_psnr_vec[i];
+      if (ssim)
+        ssim_vec[i] += temp_ssim_vec[i];
+      if (psnr)
+        psnr_vec[i] += temp_psnr_vec[i];
       dace_complexity_vec[i] += temp_dace_complexity_vec[i];
     }
   }
@@ -290,37 +313,12 @@ int main(int argc, char *argv[])
   {
     frame_size_vec[i] /= runloops;
     duration_vec[i] /= runloops;
-    if (ssim) ssim_vec[i] /= runloops;
-    if (psnr) psnr_vec[i] /= runloops;
+    if (ssim)
+      ssim_vec[i] /= runloops;
+    if (psnr)
+      psnr_vec[i] /= runloops;
     dace_complexity_vec[i] /= runloops;
   }
-
-  // Open the JSON file for writing
-  system("mkdir -p result");
-  std::string output_dir = "result/" + input_filename;
-  if (runloops > 1)
-  {
-    output_dir += "_" + std::to_string(runloops) + "loops";
-  }
-
-  std::filesystem::create_directories(output_dir);
-  std::string output_filename = output_dir + "/";
-
-  
-  for (int i = 1; i < argc; i++)
-  {
-    std::string arg = argv[i];
-    if (arg.rfind("--", 0) == 0)
-    {
-      arg = arg.substr(2);
-    }
-    output_filename += arg;
-    if (i < argc - 1)
-    {
-      output_filename += "_";
-    }
-  }
-  output_filename += ".json";
 
   cout << "Writing output to " << output_filename << endl;
   std::ofstream json_file(output_filename);
