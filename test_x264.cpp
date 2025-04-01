@@ -10,6 +10,9 @@
 // Time Analysis
 #include <chrono>
 #include <vector>
+#include <filesystem> 
+#include <regex>
+
 
 #define QP 21 // Used when CQP
 #define PRESET "superfast"
@@ -23,8 +26,8 @@ int main(int argc, char *argv[])
 
   int width = 1920;  // Default width
   int height = 1080; // Default height
-  int ssim = 0;      // Default SSIM value is 0
-  int psnr = 0;      // Default PSNR value is 0
+  int ssim = 1;      // Default SSIM value is 1
+  int psnr = 1;      // Default PSNR value is 1
   int fps = 30;      // Default FPS value is 30
   int br = 3000;     // Default Bitrate value is 3000
   int runloops = 1;  // Default number of loops is 1
@@ -61,11 +64,11 @@ int main(int argc, char *argv[])
     {
       input_filename = argv[++i];
     }
-    else if (std::string(argv[i]) == "--ssim")
+    else if (std::string(argv[i]) == "--ssim_disable")
     {
-      ssim = 1;
+      ssim = 0;
     }
-    else if (std::string(argv[i]) == "--psnr")
+    else if (std::string(argv[i]) == "--psnr_disable")
     {
       psnr = 1;
     }
@@ -106,6 +109,32 @@ int main(int argc, char *argv[])
   param_.dace = dace;
   param_.dace_complexity_level = fixed_complexity;
 
+  int bitrate_kbps = 3000;
+
+   //param_.i_threads = 1;
+   param_.i_frame_total = 0;  
+   param_.i_keyint_max = 1500;
+   param_.rc.i_rc_method = X264_RC_ABR;
+   param_.rc.i_vbv_max_bitrate = bitrate_kbps;
+   param_.rc.i_vbv_buffer_size = bitrate_kbps / 2;
+   // param_.i_bframe = 0;
+   // param_.b_open_gop = 0;
+   // param_.i_bframe_pyramid = 0;
+   // param_.i_bframe_adaptive = X264_B_ADAPT_TRELLIS;
+ 
+   param_.i_log_level = X264_LOG_DEBUG;
+   param_.i_fps_den = 1;
+   param_.i_fps_num = 30;
+ 
+   param_.b_annexb = 1;  // for start code 0,0,0,1
+   param_.i_csp = X264_CSP_I420;
+ 
+   param_.b_vfr_input = 0;
+   param_.b_repeat_headers = 1;  // sps, pps
+   param_.rc.i_bitrate = bitrate_kbps;
+   /* Apply profile restrictions. */
+    x264_param_apply_profile(&param_, "baseline");
+
   cout << "Width: " << width << ", Height: " << height << ", FPS: " << fps << ", Bitrate: " << br << endl;
 
   cout << "Allocating picture..." << endl;
@@ -145,7 +174,7 @@ int main(int argc, char *argv[])
   int count_diff;
   double average_diff;
 
-  int number_of_frames = 700;
+  int number_of_frames = 900;
 
   encoder_ = x264_encoder_open(&param_);
 
@@ -268,7 +297,16 @@ int main(int argc, char *argv[])
 
   // Open the JSON file for writing
   system("mkdir -p result");
-  std::string output_filename = "result/output_";
+  std::string output_dir = "result/" + input_filename;
+  if (runloops > 1)
+  {
+    output_dir += "_" + std::to_string(runloops) + "loops";
+  }
+
+  std::filesystem::create_directories(output_dir);
+  std::string output_filename = output_dir + "/";
+
+  
   for (int i = 1; i < argc; i++)
   {
     std::string arg = argv[i];
