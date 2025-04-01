@@ -112,29 +112,21 @@ int main(int argc, char *argv[])
   param_.dace = dace;
   param_.dace_complexity_level = fixed_complexity;
 
-  int bitrate_kbps = 3000;
-
   // param_.i_threads = 1;
   param_.i_frame_total = 0;
   param_.i_keyint_max = 1500;
-  param_.rc.i_rc_method = X264_RC_ABR;
-  param_.rc.i_vbv_max_bitrate = bitrate_kbps;
-  param_.rc.i_vbv_buffer_size = bitrate_kbps / 2;
+  param_.rc.i_vbv_buffer_size = br / 2;
   // param_.i_bframe = 0;
   // param_.b_open_gop = 0;
   // param_.i_bframe_pyramid = 0;
   // param_.i_bframe_adaptive = X264_B_ADAPT_TRELLIS;
 
   param_.i_log_level = X264_LOG_DEBUG;
-  param_.i_fps_den = 1;
-  param_.i_fps_num = 30;
 
   param_.b_annexb = 1; // for start code 0,0,0,1
   param_.i_csp = X264_CSP_I420;
 
-  param_.b_vfr_input = 0;
   param_.b_repeat_headers = 1; // sps, pps
-  param_.rc.i_bitrate = bitrate_kbps;
   /* Apply profile restrictions. */
   x264_param_apply_profile(&param_, "baseline");
 
@@ -192,7 +184,7 @@ int main(int argc, char *argv[])
   // Open the JSON file for writing
   std::string output_filename = output_dir + "/";
 
-  output_filename += "DACE" + std::to_string(dace);
+  output_filename += "DACE:" + std::to_string(dace) + "_fps:" + std::to_string(fps);
 
   cout << "Opening input file: " << input_filename << endl;
   FILE *file = fopen(input_filename.c_str(), "rb");
