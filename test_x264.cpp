@@ -74,7 +74,7 @@ int main(int argc, char *argv[])
     }
     else if (std::string(argv[i]) == "--psnr_disable")
     {
-      psnr = 1;
+      psnr = 0;
     }
     else if (std::string(argv[i]) == "--c" && i + 1 < argc)
     {
@@ -202,7 +202,7 @@ int main(int argc, char *argv[])
     return -1;
   }
 
-  std::cout << "Output file path: " << (output_filename + "coded.h264") << std::endl;
+  std::cout << "Output file path: " << (output_filename + ".h264") << std::endl;
   FILE *file_out = fopen((output_filename + "coded.h264").c_str(), "wb");
   if (!file_out)
   {
