@@ -173,7 +173,7 @@ int main(int argc, char *argv[])
 
   system("mkdir -p result");
   std::string input_basename = std::filesystem::path(input_filename).stem().string();
-  std::string output_dir = "result/" + input_basename;
+  std::string output_dir = "result/" + input_basename + "_fps:" + std::to_string(fps);
   if (runloops > 1)
   {
     output_dir += "_" + std::to_string(runloops) + "loops";
@@ -184,7 +184,7 @@ int main(int argc, char *argv[])
   // Open the JSON file for writing
   std::string output_filename = output_dir + "/";
 
-  output_filename += "DACE:" + std::to_string(dace) + "_fps:" + std::to_string(fps);
+  output_filename += "DACE:" + std::to_string(dace);
 
   cout << "Opening input file: " << input_filename << endl;
   FILE *file = fopen(input_filename.c_str(), "rb");
