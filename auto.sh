@@ -40,8 +40,8 @@ find "$INPUT_DIR" -type f -name "*.yuv" | while read -r yuv_file; do
     height=${resolution#*x}
 
     if [[ "$MODE" == "--fixed" ]]; then
-        for i in {1..10}; do
-          ./test_libx264 --i "$yuv_file" --dace 1 --c i --runloops "$RUNLOOPS" --width "$width" --height "$height" --fps 30 --length 900
+        for i in {0..9}; do
+          ./test_libx264 --i "$yuv_file" --dace 1 --c "$i" --runloops "$RUNLOOPS" --width "$width" --height "$height" --fps 30 --length 900
         done
     else
       # Run the test_libx264 program with different options
