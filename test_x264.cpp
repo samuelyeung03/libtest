@@ -178,6 +178,10 @@ int main(int argc, char *argv[])
   {
     output_dir += "_" + std::to_string(runloops) + "loops";
   }
+  if (fixed_complexity != -1)
+  {
+    output_dir += "_fixed_complexity";
+  }
 
   std::filesystem::create_directories(output_dir);
 
@@ -185,6 +189,10 @@ int main(int argc, char *argv[])
   std::string output_filename = output_dir + "/";
 
   output_filename += "DACE:" + std::to_string(dace);
+  if (fixed_complexity != -1)
+  {
+    output_filename += "c_" + std::to_string(fixed_complexity);
+  }
 
   cout << "Opening input file: " << input_filename << endl;
   FILE *file = fopen(input_filename.c_str(), "rb");
