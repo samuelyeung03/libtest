@@ -195,7 +195,7 @@ int main(int argc, char *argv[])
   }
 
   std::cout << "Output file path: " << (output_filename + ".h264") << std::endl;
-  FILE *file_out = fopen((output_filename + "coded.h264").c_str(), "wb");
+  FILE *file_out = fopen((output_filename + ".h264").c_str(), "wb");
   if (!file_out)
   {
     cerr << "Error opening output file!" << endl;
