@@ -34,6 +34,8 @@ int main(int argc, char *argv[])
   int dace = 1;
   int number_of_frames = 900;
   string input_filename = "input.yuv";
+  std::string output_dir = "result/";
+  std::string output_filename = "";
 
   cout << "Parsing command-line arguments..." << endl;
   // Parse command-line arguments for width, height, and ssim
@@ -83,6 +85,29 @@ int main(int argc, char *argv[])
     else if (std::string(argv[i]) == "--dace" && i + 1 < argc)
     {
       dace = std::atoi(argv[++i]);
+    }
+    else if (std::string(argv[i]) == "--dir" && i + 1 < argc)
+    {
+      output_dir = argv[++i];
+    }
+    else if (std::string(argv[i]) == "--name" && i + 1 < argc)
+    {
+      output_filename = argv[++i];
+    }
+  }
+
+  if (output_filename.empty())
+  {
+    for (int i = 1; i < argc; i++)
+    {
+      output_filename += std::string(argv[i]);
+      // Remove invalid characters for Linux filenames
+      output_filename.erase(std::remove_if(output_filename.begin(), output_filename.end(),
+                                           [](char c)
+                                           {
+                                             return !(isalnum(c) || c == '.' || c == '_' || c == '-');
+                                           }),
+                            output_filename.end());
     }
   }
 
@@ -172,27 +197,6 @@ int main(int argc, char *argv[])
   encoder_ = x264_encoder_open(&param_);
 
   system("mkdir -p result");
-  std::string input_basename = std::filesystem::path(input_filename).stem().string();
-  std::string output_dir = "result/" + input_basename + "_fps:" + std::to_string(fps);
-  if (runloops > 1)
-  {
-    output_dir += "_" + std::to_string(runloops) + "loops";
-  }
-  if (fixed_complexity != -1)
-  {
-    output_dir += "_fixed_complexity";
-  }
-
-  std::filesystem::create_directories(output_dir);
-
-  // Open the JSON file for writing
-  std::string output_filename = output_dir + "/";
-
-  output_filename += "DACE:" + std::to_string(dace);
-  if (fixed_complexity != -1)
-  {
-    output_filename += "c_" + std::to_string(fixed_complexity);
-  }
 
   cout << "Opening input file: " << input_filename << endl;
   FILE *file = fopen(input_filename.c_str(), "rb");
@@ -202,17 +206,17 @@ int main(int argc, char *argv[])
     return -1;
   }
 
-  std::cout << "Output file path: " << (output_filename + ".h264") << std::endl;
-  FILE *file_out = fopen((output_filename + ".h264").c_str(), "wb");
+  std::filesystem::create_directories(output_dir);
+
+  std::cout << "Output file path: " << (output_dir + output_filename + ".h264") << std::endl;
+  FILE *file_out = fopen((output_dir + "/" + output_filename + ".h264").c_str(), "wb");
   if (!file_out)
   {
-    cerr << "Error opening output file!" << endl;
-    fclose(file);
-    return -1;
+    cerr << "Error opening output file!, filename will be set to Default" << endl;
+    output_filename = "output";
+    file_out = fopen((output_dir + "/" + output_filename + ".h264").c_str(), "wb");
   }
 
-  output_filename += ".json";
-  
   cout << "Starting encoding loop..." << endl;
   for (int loop = 0; loop < runloops; loop++)
   {
@@ -320,8 +324,8 @@ int main(int argc, char *argv[])
     dace_complexity_vec[i] /= runloops;
   }
 
-  cout << "Writing output to " << output_filename << endl;
-  std::ofstream json_file(output_filename);
+  cout << "Writing output to " << output_dir + "/" + output_filename << endl;
+  std::ofstream json_file(output_dir + "/" + output_filename + ".json");
   if (!json_file.is_open())
   {
     cerr << "Error: Could not open file " << output_filename << " for writing." << endl;
