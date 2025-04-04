@@ -28,6 +28,7 @@ usage:
     --br Add bitrate value to the list, you can have more than 1 value
     --force rewrite exsiting value, skip already test value if not enable
     --no_record delete h264 for saving storge
+    --c select which complexity level you want(must use with fixed)
 
 example: ./auto.sh --all --r 1 --fps 30 --fps 60 --fps 90 --fps 120 --br 1000 --br 2000 --br 4000 --br 10000 --fixed --no_record --B DACE --no_record
 
