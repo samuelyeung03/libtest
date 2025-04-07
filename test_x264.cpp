@@ -130,7 +130,6 @@ int main(int argc, char *argv[])
   param_.i_fps_num = fps;
   param_.analyse.b_ssim = ssim;
   param_.analyse.b_psnr = psnr;
-  param_.analyse.i_me_method = X264_ME_ESA;
 
   param_.rc.i_rc_method = X264_RC_ABR;
 
@@ -140,7 +139,7 @@ int main(int argc, char *argv[])
   // param_.i_threads = 1;
   param_.i_frame_total = 0;
   param_.i_keyint_max = 1500;
-  param_.rc.i_vbv_buffer_size = br / 2;
+  param_.rc.i_vbv_buffer_size = br/2;
   // param_.i_bframe = 0;
   // param_.b_open_gop = 0;
   // param_.i_bframe_pyramid = 0;
@@ -185,6 +184,7 @@ int main(int argc, char *argv[])
   vector<int> dace_complexity_vec;
   vector<double> ssim_vec;
   vector<double> psnr_vec;
+  int overflow = 0;
 
   // while (fread(yuv, 1, frame_size, file) == frame_size) {
 
@@ -277,6 +277,10 @@ int main(int argc, char *argv[])
 
       int duration = chrono::duration_cast<chrono::microseconds>(end - start).count();
 
+      if (duration > 1000000/fps)
+      {
+        overflow ++;
+      }
       temp_frame_size_vec.push_back(i_frame_size);
       temp_duration_vec.push_back(duration);
 
@@ -388,6 +392,11 @@ int main(int argc, char *argv[])
       json_file << ", ";
   }
   json_file << "]" << endl;
+
+  // Write overflow
+  json_file << "  ,\"overflow\": [";
+  json_file << overflow;
+  json_file << "]" << endl;  
 
   // Uncomment and write DACE durations if needed
   // json_file << "  ,\"dace_duration\": [";

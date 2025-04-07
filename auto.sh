@@ -12,6 +12,9 @@ FPS_VALUES=("30") # Default FPS value
 # Default value for bitrate
 BITRATE_VALUES=("3000") # Default bitrate value
 
+# Default value for DACE
+DACE_VALUES=("0" "1") # Default DACE value
+
 FORCE=0
 NO_RECORD=0
 
@@ -25,6 +28,7 @@ while [[ "$#" -gt 0 ]]; do
     --B) BUILD="$2"; shift ;;
     --fps) FPS_VALUES+=("$2"); shift ;; # Add FPS value to the list
     --br) BITRATE_VALUES+=("$2"); shift ;; # Add bitrate value to the list
+    --d) DACE_VALUES+=("$2"); shift ;; # Add dace value to the list
     --force) FORCE=1 ;; # Set the force flag
     --no_record) NO_RECORD=1 ;; # Set the no_record flag
     *) echo "Unknown option: $1"; exit 1 ;;
@@ -35,6 +39,11 @@ done
 # Remove default FPS if user specifies custom values
 if [[ "${#FPS_VALUES[@]}" -gt 1 ]]; then
   FPS_VALUES=("${FPS_VALUES[@]:1}")
+fi
+
+# Remove default DACEE if user specifies custom values
+if [[ "${#DACE_VALUES[@]}" -gt 2 ]]; then
+  DACE_VALUES=("${DACE_VALUES[@]:2}")
 fi
 
 # Remove default bitrate if user specifies custom values
@@ -91,7 +100,7 @@ find "$INPUT_DIR" -type f -name "*.yuv" | while read -r yuv_file; do
             fi
           done
         else
-          for i in {0..9}; do
+          for i in {0..7}; do
             for bitrate in "${BITRATE_VALUES[@]}"; do
               target_file="${out_dir}/build:${build_name}_complexity:${i}_bitrate:${bitrate}_runloops:${RUNLOOPS}.json"
               if [[ -f "$target_file" && $FORCE -ne 1 ]]; then
@@ -107,25 +116,31 @@ find "$INPUT_DIR" -type f -name "*.yuv" | while read -r yuv_file; do
         fi
       fi
       if [[ "$MODE" != "--fixed" || "$MODE" == "--all" ]]; then
-        for fps in "${FPS_VALUES[@]}"; do
+        for dace in "${DACE_VALUES[@]}"; do
           for bitrate in "${BITRATE_VALUES[@]}"; do
-            target_file="${out_dir}/build:${build_name}_fps:${fps}_bitrate:${bitrate}_runloops:${RUNLOOPS}_dace:1.json"
-            if [[ -f "$target_file" && $FORCE -ne 1 ]]; then
-              echo "Skipping existing file: $target_file"
-            else
-              "$test_binary" --i "$yuv_file" --dace 1 --runloops "$RUNLOOPS" --width "$width" --height "$height" --fps "$fps" --br "$bitrate" --length 900 --dir "$out_dir" --name "build:${build_name}_fps:${fps}_bitrate:${bitrate}_runloops:${RUNLOOPS}_dace:1"
-              if [[ $NO_RECORD -eq 1 ]]; then
-                rm -f "${out_dir}/build:${build_name}_fps:${fps}_bitrate:${bitrate}_runloops:${RUNLOOPS}_dace:1.h264"
+            if [[ "$dace" -eq 0 ]]; then
+              fps="${FPS_VALUES[0]}" # Use only the first FPS value
+              target_file="${out_dir}/build:${build_name}_fps:${fps}_bitrate:${bitrate}_runloops:${RUNLOOPS}_dace:${dace}.json"
+              if [[ -f "$target_file" && $FORCE -ne 1 ]]; then
+                echo "Skipping existing file: $target_file"
+              else
+                "$test_binary" --i "$yuv_file" --dace "$dace" --runloops "$RUNLOOPS" --width "$width" --height "$height" --fps "$fps" --br "$bitrate" --length 900 --dir "$out_dir" --name "build:${build_name}_fps:${fps}_bitrate:${bitrate}_runloops:${RUNLOOPS}_dace:${dace}"
+                if [[ $NO_RECORD -eq 1 ]]; then
+                  rm -f "${out_dir}/build:${build_name}_fps:${fps}_bitrate:${bitrate}_runloops:${RUNLOOPS}_dace:${dace}.h264"
+                fi
               fi
-            fi
-            target_file="${out_dir}/build:${build_name}_fps:${fps}_bitrate:${bitrate}_runloops:${RUNLOOPS}_dace:0.json"
-            if [[ -f "$target_file" && $FORCE -ne 1 ]]; then
-              echo "Skipping existing file: $target_file"
             else
-              "$test_binary" --i "$yuv_file" --dace 0 --runloops "$RUNLOOPS" --width "$width" --height "$height" --fps "$fps" --br "$bitrate" --length 900 --dir "$out_dir" --name "build:${build_name}_fps:${fps}_bitrate:${bitrate}_runloops:${RUNLOOPS}_dace:0"
-            fi
-            if [[ $NO_RECORD -eq 1 ]]; then
-              rm -f "${out_dir}/build:${build_name}_fps:${fps}_bitrate:${bitrate}_runloops:${RUNLOOPS}_dace:0.h264"
+              for fps in "${FPS_VALUES[@]}"; do
+                target_file="${out_dir}/build:${build_name}_fps:${fps}_bitrate:${bitrate}_runloops:${RUNLOOPS}_dace:${dace}.json"
+                if [[ -f "$target_file" && $FORCE -ne 1 ]]; then
+                  echo "Skipping existing file: $target_file"
+                else
+                  "$test_binary" --i "$yuv_file" --dace "$dace" --runloops "$RUNLOOPS" --width "$width" --height "$height" --fps "$fps" --br "$bitrate" --length 900 --dir "$out_dir" --name "build:${build_name}_fps:${fps}_bitrate:${bitrate}_runloops:${RUNLOOPS}_dace:${dace}"
+                  if [[ $NO_RECORD -eq 1 ]]; then
+                    rm -f "${out_dir}/build:${build_name}_fps:${fps}_bitrate:${bitrate}_runloops:${RUNLOOPS}_dace:${dace}.h264"
+                  fi
+                fi
+              done
             fi
           done
         done
