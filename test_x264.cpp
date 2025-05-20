@@ -130,16 +130,18 @@ int main(int argc, char *argv[])
   param_.i_fps_num = fps;
   param_.analyse.b_ssim = ssim;
   param_.analyse.b_psnr = psnr;
+  param_.rc.i_aq_mode = 1;
 
   param_.rc.i_rc_method = X264_RC_ABR;
 
   param_.dace = dace;
   param_.dace_complexity_level = fixed_complexity;
 
-  // param_.i_threads = 1;
+  param_.i_threads = 12;
   param_.i_frame_total = 0;
   param_.i_keyint_max = 1500;
-  param_.rc.i_vbv_buffer_size = br/2;
+  param_.rc.i_vbv_max_bitrate = br;
+  param_.rc.i_vbv_buffer_size = 0;
   // param_.i_bframe = 0;
   // param_.b_open_gop = 0;
   // param_.i_bframe_pyramid = 0;

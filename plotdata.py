@@ -1,6 +1,7 @@
 import json
 import os
 import matplotlib.pyplot as plt
+import math
 
 result_folder = './result'
 
@@ -72,6 +73,14 @@ for subfolder in os.listdir(result_folder):
                 file_average = sum(values) / len(values) if values else 0
                 analysis_file.write(f'  Average for {filename}: {file_average}\n')
 
+        # Calculate SSIM in dB if the key 'ssim' exists
+        if 'ssim' in aggregated_data:
+            analysis_file.write('\nSSIM in dB:\n')
+            for filename, values in aggregated_data['ssim']:
+                ssim_db_values = [-10.0 * math.log10(1 - value) for value in values if 0 < value < 1]
+                avg_ssim_db = sum(ssim_db_values) / len(ssim_db_values) if ssim_db_values else float('-inf')
+                analysis_file.write(f'  Average SSIM in dB for {filename}: {avg_ssim_db}\n')
+
         # Calculate and write percentage difference adn peak difference in SSIM and PSNR between all file pairs
         from itertools import combinations
         keys_to_compare = ['ssim', 'psnr']  # Keys to compare
@@ -97,6 +106,22 @@ for subfolder in os.listdir(result_folder):
                         analysis_file.write(f'  Peak 10%: {avg_peak_10_diff}%\n')
                         analysis_file.write(f'  Peak 5%: {avg_peak_5_diff}%\n')
                         analysis_file.write(f'  Peak 1%: {avg_peak_1_diff}%\n')
+
+                        # Calculate absolute value differences
+                        abs_diff = [abs(v1 - v2) for v1, v2 in zip(values1, values2)]
+                        avg_abs_diff = sum(abs_diff) / len(abs_diff)
+
+                        abs_top_10_percent = sorted(abs_diff, reverse=True)[:max(1, len(abs_diff) // 10)]
+                        avg_abs_peak_10_diff = sum(abs_top_10_percent) / len(abs_top_10_percent)
+                        abs_top_5_percent = sorted(abs_diff, reverse=True)[:max(1, len(abs_diff) // 20)]
+                        avg_abs_peak_5_diff = sum(abs_top_5_percent) / len(abs_top_5_percent)
+                        abs_top_1_percent = sorted(abs_diff, reverse=True)[:max(1, len(abs_diff) // 100)]
+                        avg_abs_peak_1_diff = sum(abs_top_1_percent) / len(abs_top_1_percent)
+
+                        analysis_file.write(f'  Absolute Difference Average: {avg_abs_diff}\n')
+                        analysis_file.write(f'  Absolute Peak 10%: {avg_abs_peak_10_diff}\n')
+                        analysis_file.write(f'  Absolute Peak 5%: {avg_abs_peak_5_diff}\n')
+                        analysis_file.write(f'  Absolute Peak 1%: {avg_abs_peak_1_diff}\n')
                     else:
                         analysis_file.write(f'Cannot compare {key} between {file1} and {file2} due to unequal lengths.\n')
             else:
@@ -155,3 +180,17 @@ for subfolder in os.listdir(result_folder):
                 plt.tight_layout()
                 plt.savefig(os.path.join(graphs_folder, f'dace_complexity_and_durations_{file1}.png'))
                 plt.close()  # Close the plot instead of showing it
+
+    # Plot (33333 - durations) if the key 'durations' is found
+    if 'durations' in aggregated_data:
+        for filename, durations in aggregated_data['durations']:
+            adjusted_values = [33333 - value for value in durations]
+            plt.figure(figsize=(10, 5))
+            plt.plot(adjusted_values, label='(33333 - Durations)', alpha=0.7)
+            plt.xlabel('Index')
+            plt.ylabel('Values')
+            plt.title(f'(33333 - Durations) for {filename}')
+            plt.legend(loc='upper right')  # Set legend position
+            plt.tight_layout()
+            plt.savefig(os.path.join(graphs_folder, f'33333_minus_durations_{filename}.png'))
+            plt.close()  # Close the plot instead of showing it
